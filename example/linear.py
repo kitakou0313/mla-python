@@ -8,6 +8,8 @@ import numpy as np
 from sklearn.datasets import load_boston
 from sklearn.utils import Bunch
 
+from model.linear import LinearRegression
+
 logging.basicConfig(level=logging.ERROR)
 
 
@@ -30,7 +32,12 @@ def regression():
     print(x[:5], yt[:5])
 
     # model定義
+    M = x.shape[0]
+    D = x.shape[1]
+
+    model = LinearRegression(D)
     # model学習
+    model.fit(iters=80000, alpha=0.01, x=x, yt=yt)
     # model推論
 
 
