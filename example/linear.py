@@ -13,7 +13,7 @@ from model.linear import LinearRegression
 logging.basicConfig(level=logging.ERROR)
 
 
-def regression():
+def regression1():
     """
     ランダムなregressionのサンプルを生成
     """
@@ -37,8 +37,32 @@ def regression():
 
     model = LinearRegression(D)
     # model学習
-    model.fit(iters=80000, alpha=0.01, x=x, yt=yt)
+    model.fit(iters=10000, alpha=0.01, x=x, yt=yt)
     # model推論
+
+
+def regression2():
+    """
+    重回帰サンプル
+    """
+    boston = load_boston()
+    x_org, yt = boston.data, boston.target
+    feature_names = boston.feature_names
+    print("Original name", x_org.shape, yt.shape)
+    print("Feature name", feature_names)
+
+    print(feature_names == "RM")
+    print(feature_names == "LSTAT")
+
+    x_data = x_org[:, feature_names == "RM"]
+    x_added = x_org[:, feature_names == "LSTAT"]
+    x = np.insert(x_data, 0, 1.0, axis=1)
+    x2 = np.hstack((x, x_added))
+    print(x2.shape)
+    print(x2)
+    M, D = x2.shape
+    model2 = LinearRegression(D)
+    model2.fit(iters=10000, alpha=0.001, x=x2, yt=yt)
 
 
 # def classification():
@@ -57,5 +81,6 @@ def regression():
 
 
 if __name__ == "__main__":
-    regression()
+    # regression1()
+    regression2()
     # classification()
