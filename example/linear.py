@@ -54,10 +54,11 @@ def regression2():
     print(feature_names == "RM")
     print(feature_names == "LSTAT")
 
-    x_data = x_org[:, feature_names == "RM"]
-    x_added = x_org[:, feature_names == "LSTAT"]
-    x = np.insert(x_data, 0, 1.0, axis=1)
-    x2 = np.hstack((x, x_added))
+    print(np.where((feature_names == "RM") | (feature_names == "LSTAT")))
+
+    feature_rows = np.where((feature_names == "RM") |
+                            (feature_names == "LSTAT"))
+    x2 = x_org[:, feature_rows[0]]
     print(x2.shape)
     print(x2)
     M, D = x2.shape
