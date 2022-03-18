@@ -5,10 +5,11 @@ import sklearn
 
 import numpy as np
 
-from sklearn.datasets import load_boston
+from sklearn.datasets import load_boston, load_iris
 from sklearn.utils import Bunch
 
-from model.linear import LinearRegression
+from model.linear import LinearRegression, Binaryclassification
+from sklearn.model_selection import train_test_split
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -66,22 +67,33 @@ def regression2():
     model2.fit(iters=10000, alpha=0.001, x=x2, yt=yt)
 
 
-# def classification():
-#     """
-#     分類のサンプルを生成
-#     """
-#     X, y = make_classification(
-#         n_samples=1000, n_features=100, n_informative=75, random_state=111, n_classes=2, class_sep=2.5
-#     )
-#     X_train, X_test, y_train, y_test = train_test_split(
-#         X, y, test_size=0.1, random_state=111
-#     )
+def classification():
+    """
+    分類のサンプルを生成
+    """
+    iris = load_iris()
+    x_org: np.ndarray = iris.data
+    y_org: np.ndarray = iris.target
+    print("Origin Data", x_org.shape, y_org.shape)
 
-#     print(X[:10])
-#     print(y[:10])
+    x_data: np.ndarray = iris.data[:100, :2]
+    x_data = np.insert(x_data, 0, 1.0, axis=1)
+    y_data: np.ndarray = iris.target[:100]
+    print("Data shape", x_data.shape, y_data.shape)
+
+    x_train, x_test, y_train, y_test = train_test_split(
+        x_data, y_data, train_size=70, test_size=30, random_state=123
+    )
+    print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
+
+    D = x_data.shape[1]
+    classification = Binaryclassification(D)
+
+    classification.fit(iters=10000, alpha=0.0001, x=x_train,
+                       yt=y_train, x_test=x_test, yt_test=y_test)
 
 
 if __name__ == "__main__":
     # regression1()
-    regression2()
-    # classification()
+    # regression2()
+    classification()

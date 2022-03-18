@@ -1,4 +1,65 @@
+from matplotlib.pyplot import hist
 import numpy as np
+from model.utils import sigmoid, cross_entropy
+from sklearn.metrics import accuracy_score
+
+
+def classify(y):
+    return np.where(y < 0.5, 0, 1)
+
+
+def evaluate(yt: np.ndarray, yp: np.ndarray):
+    """
+    分類の評価関数
+    """
+    loss = cross_entropy(yt, yp)
+    yp_b = classify(yp)
+    score = accuracy_score(yt, yp_b)
+
+    return loss, score
+
+
+class Binaryclassification(object):
+    """
+    2値分類
+    """
+
+    def __init__(self, D: int):
+        """
+        コンストラクタ
+        D:int 入力次元
+        """
+        self.w = np.zeros(D)
+        self.D = D
+
+    def pred(self, x: np.ndarray) -> np.ndarray:
+        """
+        予測
+        """
+        return sigmoid(x @ self.w)
+
+    def fit(self, iters: int, alpha: np.float64, x: np.ndarray, yt: np.ndarray, x_test: np.ndarray, yt_test: np.ndarray):
+        """
+        学習
+        """
+        M, D = x.shape
+
+        history = []
+
+        for k in range(1, iters+1):
+            yp = self.pred(x)
+            yd = yp - yt
+
+            self.w = self.w - (alpha / M) * (x.T @ yd)
+            if k % 100 == 0:
+                yp_test = self.pred(x_test)
+                loss, score = evaluate(yt_test, yp_test)
+                history.append((loss, score))
+
+                print("Loss, score", loss, score, self.w)
+
+        print(history[0])
+        print(history[-1])
 
 
 class LinearRegression(object):
