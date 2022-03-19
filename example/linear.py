@@ -1,15 +1,14 @@
-from json import load
 import logging
-from matplotlib.pyplot import axis
 import sklearn
 
 import numpy as np
 
 from sklearn.datasets import load_boston, load_iris
-from sklearn.utils import Bunch
+from sklearn.preprocessing import OneHotEncoder
 
-from model.linear import LinearRegression, Binaryclassification
+from model.linear import LinearRegression, Binaryclassification, MultiClassification
 from sklearn.model_selection import train_test_split
+
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -93,7 +92,37 @@ def classification():
                        yt=y_train, x_test=x_test, yt_test=y_test)
 
 
+def multi_classification():
+    """
+    多値分類タスク
+    """
+    iris = load_iris()
+    x_org, y_org = iris.data, iris.target
+    x_select = x_org[:, [0, 2]]
+    x_all = np.insert(x_select, 0, 1.0, axis=1)
+
+    ohe = OneHotEncoder(sparse=False, categories="auto")
+    y_work = np.c_[y_org]
+    y_all_onehot: np.ndarray = ohe.fit_transform(y_work)
+
+    print(x_all.shape, y_all_onehot.shape)
+
+    x_train, x_test, y_train, y_test, y_train_one, y_test_one = train_test_split(
+        x_all, y_org, y_all_onehot, train_size=75, test_size=75, random_state=123)
+
+    print(x_train.shape, x_test.shape, y_train.shape,
+          y_test.shape, y_train_one.shape, y_test_one.shape)
+
+    D = x_all.shape[1]
+    N = y_all_onehot.shape[1]
+    multiClassModel = MultiClassification(D=D, N=N)
+
+    multiClassModel.fit(iters=50000, alpha=0.001,
+                        x=x_train, yt=y_train_one, x_test=x_test, yt_test=y_test, yt_test_onehost=y_test_one)
+
+
 if __name__ == "__main__":
     # regression1()
     # regression2()
-    classification()
+    # classification()
+    multi_classification()
