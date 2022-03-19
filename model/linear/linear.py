@@ -1,6 +1,7 @@
+from re import M
 from matplotlib.pyplot import hist
 import numpy as np
-from model.utils import sigmoid, cross_entropy
+from model.utils import sigmoid, cross_entropy, softmax, multi_cross_entropy
 from sklearn.metrics import accuracy_score
 
 
@@ -60,6 +61,60 @@ class Binaryclassification(object):
 
         print(history[0])
         print(history[-1])
+
+
+class MultiClassification(object):
+    """
+    複数クラス分類
+    """
+
+    def __init__(self, D: int, N: int):
+        """
+        コンストラクタ
+        D...特徴次元数
+        N...分類クラス数
+        """
+        self.W = np.ones((D, N))
+
+    def pred(self, x: np.ndarray) -> np.ndarray:
+        """
+        予測関数
+        """
+        return softmax(x @ self.W)
+
+    def fit(self, iters: int, alpha: np.float64, x: np.ndarray, yt: np.ndarray, x_test: np.ndarray, yt_test: np.ndarray, yt_test_onehost: np.ndarray):
+        """
+        学習
+        """
+        history = []
+        for iter in range(1, iters+1):
+            M, D = x.shape
+
+            yp = self.pred(x)
+            yd = yp - yt
+
+            self.W = self.W - (alpha / M)*(x.T @ yd)
+
+            if iter % 10 == 0:
+                loss, score = self.evaluate(
+                    x_test=x_test, y_test=yt_test, y_test_one=yt_test_onehost)
+                history.append((loss, score))
+
+                print("iter, loss, score", iter, loss, score)
+
+        print(history[0])
+        print(history[-1])
+
+    def evaluate(self, x_test: np.ndarray, y_test: np.ndarray, y_test_one):
+        """
+        多クラス分類の評価
+        """
+        yp_test_one = self.pred(x_test)
+
+        yp_test = np.argmax(yp_test_one, axis=1)
+        loss = multi_cross_entropy(y_test_one, yp_test_one)
+        score = accuracy_score(y_test, yp_test)
+        return loss, score
 
 
 class LinearRegression(object):
