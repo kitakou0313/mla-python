@@ -27,7 +27,9 @@ def classificate_mnist():
     test = test.reshape([test.shape[0], -1])
     test = np.insert(test, 0, 1, axis=1)
     test = test / 255.0
-    test_taeget: np.ndarray = test_tensor.targets.numpy()
+    test_target: np.ndarray = test_tensor.targets.numpy()
+    test_target_onehot = ohe.transform(np.c_[test_target])
+    print("One hot vector ", test_target_onehot)
 
     pass
 
