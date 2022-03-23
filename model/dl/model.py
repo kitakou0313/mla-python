@@ -17,9 +17,10 @@ class MLP(object):
         middle_mid...第一層通過後の特徴ベクトル次元数
         """
         # 1層目
-        self.V = np.zeros((D, middle_dim))
+        self.V = np.random.randn(D, middle_dim) / np.sqrt(D/2)
         # 2層目（bias項が追加されるので+1）
-        self.W = np.zeros((middle_dim + 1, N))
+        self.W = np.random.randn(middle_dim + 1, N) / \
+            np.sqrt(middle_dim + 1 / 2)
 
         # 中間層での特徴ベクトル
         self.b = np.zeros(middle_dim)
@@ -33,21 +34,23 @@ class MLP(object):
 
         M = x_train.shape[0]
 
-        for iter in range(1, iters+1):
+        for k in range(1, iters+1):
             yp = self.predict(x_train)
             # 誤差計算
             # 予測値誤差
-            yd = yp - yt_train
+            yd = yp - yt_train_onehot
             # 隠れ層誤差
             bd = self.b * (1 - self.b) * (yd @ self.W[1:].T)
 
             self.W = self.W - (alpha / M)*(self.b_bias.T @ yd)
             self.V = self.V - (alpha / M)*(x_train.T @ bd)
 
-            if iter % 100 == 0:
+            if k % 20 == 0:
                 score, loss = self.evaluate(
                     x_test=x_test, yt_test=yt_test, yt_test_onehot=yt_test_onehot)
                 history.append((score, loss))
+
+                print((score, loss))
 
         print("学習初期", history[0])
         print("学習終了時", history[-1])
