@@ -23,6 +23,7 @@ class MLP(object):
 
         # 中間層での特徴ベクトル
         self.b = np.zeros(middle_dim)
+        self.b_bias = np.zeros(middle_dim + 1)
 
     def fit(self, alpha: np.float64, iters: int, x_train: np.ndarray, yt_train: np.ndarray, yt_train_onehot: np.ndarray, x_test: np.ndarray, yt_test: np.ndarray, yt_test_onehot: np.ndarray):
         """
@@ -30,15 +31,20 @@ class MLP(object):
         """
         history = []
 
+        M = x_train.shape[0]
+
         for iter in range(1, iters+1):
             yp = self.predict(x_train)
             # 誤差計算
             # 予測値誤差
             yd = yp - yt_train
             # 隠れ層誤差
-            bd =
+            bd = self.b * (1 - self.b) * (yd @ self.W[1:].T)
 
-            if iters % 100 == 0:
+            self.W = self.W - (alpha / M)*(self.b_bias.T @ yd)
+            self.V = self.V - (alpha / M)*(x_train.T @ bd)
+
+            if iter % 100 == 0:
                 score, loss = self.evaluate(
                     x_test=x_test, yt_test=yt_test, yt_test_onehot=yt_test_onehot)
                 history.append((score, loss))
@@ -53,7 +59,9 @@ class MLP(object):
         # 1層目
         a = x@self.V
         self.b = sigmoid(a)
+
         b_with_bias = np.insert(self.b, 0, 1, axis=1)
+        self.b_bias = b_with_bias
 
         # 2層目
         u = b_with_bias @ self.W
