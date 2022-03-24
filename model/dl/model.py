@@ -1,7 +1,7 @@
 from matplotlib.pyplot import hist
 import numpy as np
 from sklearn.metrics import accuracy_score
-from model.utils import multi_cross_entropy, softmax, sigmoid
+from model.utils import multi_cross_entropy, softmax, sigmoid, ReLU, step
 
 
 class MLP(object):
@@ -26,6 +26,8 @@ class MLP(object):
         self.b = np.zeros(middle_dim)
         self.b_bias = np.zeros(middle_dim + 1)
 
+        self.a = np.zeros(middle_dim)
+
     def fit(self, alpha: np.float64, iters: int, x_train: np.ndarray, yt_train: np.ndarray, yt_train_onehot: np.ndarray, x_test: np.ndarray, yt_test: np.ndarray, yt_test_onehot: np.ndarray):
         """
         学習
@@ -40,7 +42,8 @@ class MLP(object):
             # 予測値誤差
             yd = yp - yt_train_onehot
             # 隠れ層誤差
-            bd = self.b * (1 - self.b) * (yd @ self.W[1:].T)
+            # bd = self.b * (1 - self.b) * (yd @ self.W[1:].T)
+            bd = step(self.a) * (yd @ self.W[1:].T)
 
             self.W = self.W - (alpha / M)*(self.b_bias.T @ yd)
             self.V = self.V - (alpha / M)*(x_train.T @ bd)
@@ -61,7 +64,8 @@ class MLP(object):
         """
         # 1層目
         a = x@self.V
-        self.b = sigmoid(a)
+        self.a = a
+        self.b = ReLU(a)
 
         b_with_bias = np.insert(self.b, 0, 1, axis=1)
         self.b_bias = b_with_bias

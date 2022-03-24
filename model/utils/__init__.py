@@ -8,6 +8,20 @@ def sigmoid(x: np.ndarray) -> np.ndarray:
     return 1 / (1 + np.exp(-x))
 
 
+def ReLU(x: np.ndarray) -> np.ndarray:
+    """
+    ReLU関数
+    """
+    return np.maximum(0, x)
+
+
+def step(x: np.ndarray) -> np.ndarray:
+    """
+    step関数（ReLU関数の微分）
+    """
+    return 1.0 * (x > 0)
+
+
 def cross_entropy(yt: np.ndarray, yp: np.ndarray) -> np.float64:
     """
     クロスエントロピー

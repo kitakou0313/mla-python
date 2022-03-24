@@ -40,7 +40,7 @@ def classificate_mnist():
     D = train.shape[1]
     N = train_target_onehot.shape[1]
 
-    model = MLP(D=D, N=N, middle_dim=20)
+    model = MLP(D=D, N=N, middle_dim=50)
 
     model.fit(alpha=0.01, iters=1000, x_train=train,
               yt_train=train_target, yt_train_onehot=train_target_onehot, x_test=test, yt_test=test_target, yt_test_onehot=test_target_onehot)
