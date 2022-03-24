@@ -23,7 +23,8 @@ def classificate_mnist():
     train_target: np.ndarray = train_tensor.targets.numpy()
 
     ohe = OneHotEncoder(sparse=False)
-    train_target_onehot: np.ndarray = ohe.fit_transform(np.c_[train_target])
+    train_target_onehot: np.ndarray = ohe.fit_transform(
+        train_target.reshape(-1, 1))
     print('One Hot Vector化後', train_target_onehot.shape)
 
     train = train[:10000, :]
@@ -34,7 +35,7 @@ def classificate_mnist():
     test = np.insert(test, 0, 1, axis=1)
     test = test / 255.0
     test_target: np.ndarray = test_tensor.targets.numpy()
-    test_target_onehot: np.ndarray = ohe.transform(np.c_[test_target])
+    test_target_onehot: np.ndarray = ohe.transform(test_target.reshape(-1, 1))
     print("One hot vector ", test_target_onehot)
 
     D = train.shape[1]
