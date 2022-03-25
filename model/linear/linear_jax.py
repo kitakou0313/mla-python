@@ -20,9 +20,10 @@ def cross_entropy(W: jnp.ndarray, x_train: jnp.ndarray, yt: jnp.ndarray) -> jnp.
     """
     損失関数(cross entropy)
     """
-    yp = x_train @ W
-    label_prob = (yt * (yp) + (1-yt) * (1-yp))
-    return -jnp.sum(label_prob)
+    yp = sigmoid(x_train @ W)
+
+    ce = yt * jnp.log(yp) + (1-yt) * jnp.log(1-yp)
+    return -jnp.sum(ce)
 
 
 class JaxBinClassification(object):

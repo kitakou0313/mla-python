@@ -13,6 +13,7 @@ from jax import random
 
 from sklearn.model_selection import train_test_split
 
+import jax.numpy as jnp
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -107,7 +108,11 @@ def classification_jax():
 
     x_data: np.ndarray = iris.data[:100, :2]
     x_data = np.insert(x_data, 0, 1.0, axis=1)
+
+    x_data = jnp.asarray(x_data)
+
     y_data: np.ndarray = iris.target[:100]
+    y_data = jnp.asarray(y_data)
     print("Data shape", x_data.shape, y_data.shape)
 
     x_train, x_test, y_train, y_test = train_test_split(
