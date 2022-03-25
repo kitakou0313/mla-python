@@ -12,6 +12,9 @@ def sigmoid(x: jnp.ndarray) -> jnp.ndarray:
     return 1 / (1 + jnp.exp(-x))
 
 
+sigmoid_jit = jit(sigmoid)
+
+
 def classify(y):
     return jnp.where(y < 0.5, 0, 1)
 
@@ -42,7 +45,7 @@ class JaxBinClassification(object):
         """
         推論
         """
-        return sigmoid(x @ self.W)
+        return sigmoid_jit(x @ self.W)
 
     def fit(self, alpha: int, iters: int, x_train: jnp.ndarray, yt_train: jnp.ndarray, x_test: jnp.ndarray, yt_test: jnp.ndarray):
         """
@@ -51,6 +54,7 @@ class JaxBinClassification(object):
         M = x_train.shape[0]
 
         loss_W_grad = grad(cross_entropy, argnums=0)
+        loss_W_grad = jit(loss_W_grad)
 
         history = []
         for k in range(1, iters+1):
