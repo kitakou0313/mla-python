@@ -7,6 +7,10 @@ from sklearn.datasets import load_boston, load_iris
 from sklearn.preprocessing import OneHotEncoder
 
 from model.linear import LinearRegression, Binaryclassification, MultiClassification
+from model.linear.linear_jax import JaxBinClassification
+
+from jax import random
+
 from sklearn.model_selection import train_test_split
 
 
@@ -92,6 +96,35 @@ def classification():
                        yt=y_train, x_test=x_test, yt_test=y_test)
 
 
+def classification_jax():
+    """
+    分類のサンプルを生成
+    """
+    iris = load_iris()
+    x_org: np.ndarray = iris.data
+    y_org: np.ndarray = iris.target
+    print("Origin Data", x_org.shape, y_org.shape)
+
+    x_data: np.ndarray = iris.data[:100, :2]
+    x_data = np.insert(x_data, 0, 1.0, axis=1)
+    y_data: np.ndarray = iris.target[:100]
+    print("Data shape", x_data.shape, y_data.shape)
+
+    x_train, x_test, y_train, y_test = train_test_split(
+        x_data, y_data, train_size=70, test_size=30, random_state=123
+    )
+    print(x_train.shape, x_test.shape, y_train.shape, y_test.shape)
+
+    D = x_data.shape[1]
+
+    key = random.PRNGKey(0)
+
+    classification = JaxBinClassification(D=D, key=key)
+
+    classification.fit(alpha=0.01, iters=10000, x_train=x_train,
+                       yt_train=y_train, x_test=x_test, yt_test=y_test)
+
+
 def multi_classification():
     """
     多値分類タスク
@@ -125,4 +158,5 @@ if __name__ == "__main__":
     # regression1()
     # regression2()
     # classification()
-    multi_classification()
+    # multi_classification()
+    classification_jax()
