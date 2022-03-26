@@ -81,3 +81,85 @@ class JaxBinClassification(object):
         yp_b = classify(yp)
         score = accuracy_score(yt, yp_b)
         return loss, score
+
+
+def softmax(x: jnp.ndarray) -> jnp.ndarray:
+    """
+    ソフトマックス
+    """
+    x = x.T
+    x_max = x.max(axis=0)
+    x = x - x_max
+    w = jnp.exp(x)
+
+    return (w / w.sum(axis=0)).T
+
+
+softmax_jit = jit(softmax)
+
+
+def multi_cross_entropy(W: jnp.ndarray, x: jnp.ndarray, yt_onehot: jnp.ndarray) -> jnp.ndarray:
+    """
+    損失関数(多クラス用cross entropy)
+    """
+    yp = softmax_jit(x @ W)
+    return -jnp.sum(jnp.sum(yt_onehot * jnp.log(yp), axis=1))
+
+
+multi_cross_entropy_jit = jit(multi_cross_entropy)
+
+
+class JaxMultiClassification(object):
+    """
+    Jax version multi classification
+    """
+
+    def __init__(self, D: int, N: int, key):
+        """
+        コンストラクタ
+        D...特徴
+        N...分類クラス
+        """
+        key, W_key = random.split(key, 2)
+        self.W = random.normal(W_key, (D, N))
+
+    def pred(self, x: jnp.ndarray) -> jnp.ndarray:
+        """
+        推論
+        """
+        return softmax_jit(x @ self.W)
+
+    def fit(self, alpha: int, iters: int, x_train: jnp.ndarray, yt_train_onehot: jnp.ndarray, x_test: jnp.ndarray, yt_test: jnp.ndarray, yt_test_onehot: jnp.ndarray):
+        """
+        学習
+        """
+        M = x_train.shape[0]
+
+        loss_W_grad = grad(multi_cross_entropy_jit, argnums=0)
+        loss_W_grad = jit(loss_W_grad)
+
+        history = []
+        for k in range(1, iters+1):
+            self.W -= (alpha / M) * \
+                (loss_W_grad(self.W, x_train, yt_train_onehot))
+
+            if k % 100 == 0:
+                loss, score = self.evaluate(
+                    x_test=x_test, yt=yt_test, yt_onehot=yt_test_onehot)
+                history.append((loss, score))
+                print("iter", k, loss, score)
+
+        print(history[0])
+        print(history[-1])
+
+    def evaluate(self, yt: jnp.ndarray, x_test: jnp.ndarray, yt_onehot: jnp.ndarray):
+        """
+        分類の評価関数
+        """
+        loss = multi_cross_entropy_jit(self.W, x=x_test, yt_onehot=yt_onehot)
+
+        yp = self.pred(x_test)
+        yp_test = jnp.argmax(yp, axis=1)
+
+        score = accuracy_score(yt, yp_test)
+        return loss, score

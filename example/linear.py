@@ -7,7 +7,7 @@ from sklearn.datasets import load_boston, load_iris
 from sklearn.preprocessing import OneHotEncoder
 
 from model.linear import LinearRegression, Binaryclassification, MultiClassification
-from model.linear.linear_jax import JaxBinClassification
+from model.linear.linear_jax import JaxBinClassification, JaxMultiClassification
 
 from jax import random
 
@@ -159,9 +159,44 @@ def multi_classification():
                         x=x_train, yt=y_train_one, x_test=x_test, yt_test=y_test, yt_test_onehost=y_test_one)
 
 
+def multi_classification_jax():
+    """
+    多値分類タスク（jaxバージョン）
+    """
+    iris = load_iris()
+    x_org, y_org = iris.data, iris.target
+    x_select = x_org[:, [0, 2]]
+    x_all = np.insert(x_select, 0, 1.0, axis=1)
+
+    ohe = OneHotEncoder(sparse=False, categories="auto")
+    y_work = np.c_[y_org]
+    y_all_onehot: np.ndarray = ohe.fit_transform(y_work)
+
+    print(x_all.shape, y_all_onehot.shape)
+
+    x_all = jnp.array(x_all, dtype=jnp.float64)
+    y_all_onehot = jnp.array(y_all_onehot, dtype=jnp.float64)
+    y_org = jnp.array(y_org, dtype=jnp.float64)
+
+    x_train, x_test, y_train, y_test, y_train_one, y_test_one = train_test_split(
+        x_all, y_org, y_all_onehot, train_size=75, test_size=75, random_state=123)
+
+    print(x_train.shape, x_test.shape, y_train.shape,
+          y_test.shape, y_train_one.shape, y_test_one.shape)
+
+    D = x_all.shape[1]
+    N = y_all_onehot.shape[1]
+
+    key = random.PRNGKey(0)
+    multiClassModel = JaxMultiClassification(D=D, N=N, key=key)
+    multiClassModel.fit(alpha=0.01, iters=100000, x_train=x_train,
+                        yt_train_onehot=y_train_one, x_test=x_test, yt_test=y_test, yt_test_onehot=y_test_one)
+
+
 if __name__ == "__main__":
     # regression1()
     # regression2()
     # classification()
     # multi_classification()
-    classification_jax()
+    # classification_jax()
+    multi_classification_jax()
