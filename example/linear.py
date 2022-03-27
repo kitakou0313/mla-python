@@ -107,8 +107,6 @@ def classification_jax():
     print("Origin Data", x_org.shape, y_org.shape)
 
     x_data: np.ndarray = iris.data[:100, :2]
-    x_data = np.insert(x_data, 0, 1.0, axis=1)
-
     x_data = jnp.asarray(x_data)
 
     y_data: np.ndarray = iris.target[:100]
@@ -198,5 +196,5 @@ if __name__ == "__main__":
     # regression2()
     # classification()
     # multi_classification()
-    # classification_jax()
-    multi_classification_jax()
+    classification_jax()
+    # multi_classification_jax()

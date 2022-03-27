@@ -19,11 +19,11 @@ def classify(y):
     return jnp.where(y < 0.5, 0, 1)
 
 
-def cross_entropy(W: jnp.ndarray, x_train: jnp.ndarray, yt: jnp.ndarray) -> jnp.ndarray:
+def cross_entropy(W: jnp.ndarray, b: jnp.ndarray,  x_train: jnp.ndarray, yt: jnp.ndarray) -> jnp.ndarray:
     """
     損失関数(cross entropy)
     """
-    yp = sigmoid(x_train @ W)
+    yp = sigmoid(x_train @ W + b)
 
     ce = yt * jnp.log(yp) + (1-yt) * jnp.log(1-yp)
     return -jnp.sum(ce)
@@ -38,14 +38,15 @@ class JaxBinClassification(object):
         """
         コンストラクタ
         """
-        key, W_key = random.split(key, 2)
+        key, W_key, b_key = random.split(key, 3)
         self.W = random.normal(W_key, (D,))
+        self.b = random.normal(b_key, (1,))
 
     def pred(self, x: jnp.ndarray) -> jnp.ndarray:
         """
         推論
         """
-        return sigmoid_jit(x @ self.W)
+        return sigmoid_jit(x @ self.W + self.b)
 
     def fit(self, alpha: int, iters: int, x_train: jnp.ndarray, yt_train: jnp.ndarray, x_test: jnp.ndarray, yt_test: jnp.ndarray):
         """
@@ -56,9 +57,16 @@ class JaxBinClassification(object):
         loss_W_grad = grad(cross_entropy, argnums=0)
         loss_W_grad = jit(loss_W_grad)
 
+        loss_b_grad = grad(cross_entropy, argnums=1)
+        loss_b_grad = jit(loss_b_grad)
+
         history = []
         for k in range(1, iters+1):
-            self.W -= (alpha / M)*(loss_W_grad(self.W, x_train, yt_train))
+            self.W -= (alpha / M) * \
+                (loss_W_grad(self.W, self.b,  x_train, yt_train))
+
+            self.b -= (alpha / M) * \
+                (loss_b_grad(self.W, self.b, x_train, yt_train))
 
             if k % 100 == 0:
                 loss, score = self.evaluate(x_test=x_test, yt=yt_test)
@@ -75,7 +83,7 @@ class JaxBinClassification(object):
         """
         分類の評価関数
         """
-        loss = cross_entropy(self.W, x_train=x_test, yt=yt)
+        loss = cross_entropy(self.W, self.b, x_train=x_test, yt=yt)
 
         yp = self.pred(x_test)
         yp_b = classify(yp)
